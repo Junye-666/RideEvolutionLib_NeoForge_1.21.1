@@ -5,8 +5,8 @@ import com.jpigeon.rideevolutionlib.RideEvolutionLib;
 import com.jpigeon.rideevolutionlib.compat.geckoLib.armor.BaseKamenRiderArmorItem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.zigythebird.playeranim.accessors.IAnimatedPlayer;
-import com.zigythebird.playeranimcore.api.firstPerson.FirstPersonMode;
+import dev.kosmx.playerAnim.api.firstPerson.FirstPersonMode;
+import dev.kosmx.playerAnim.impl.IAnimatedPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -49,7 +49,7 @@ public class GeckoArmRenderer {
         }
 
         // 获取 Gecko 盔甲渲染器（直接使用具体类型）
-        GeoArmorRenderer<BaseKamenRiderArmorItem> renderer = getArmorRenderer(armorItem, player, chestStack);
+        GeoArmorRenderer<BaseKamenRiderArmorItem> renderer = getArmorRenderer(player, chestStack);
         if (renderer == null) {
             return;
         }
@@ -130,7 +130,6 @@ public class GeckoArmRenderer {
      * 获取盔甲渲染器（直接从 BaseKamenRiderArmorItem 获取，类型安全）
      */
     private static GeoArmorRenderer<BaseKamenRiderArmorItem> getArmorRenderer(
-            BaseKamenRiderArmorItem armorItem,
             AbstractClientPlayer player,
             ItemStack stack) {
         // 由于 BaseKamenRiderArmorItem 的 createGeoRenderer 已经注册了 GenericArmorRenderer
@@ -165,7 +164,7 @@ public class GeckoArmRenderer {
         if (!ModList.get().isLoaded("playeranimator")) return true;
         try {
             if (player instanceof IAnimatedPlayer animated) {
-                var mode = animated.playerAnimLib$getAnimManager().getFirstPersonMode();
+                var mode = animated.getAnimationStack().getFirstPersonMode(Minecraft.getInstance().getTimer().getGameTimeDeltaTicks());
                 return mode != FirstPersonMode.THIRD_PERSON_MODEL;
             }
         } catch (Exception ignored) {}

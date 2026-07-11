@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 
-public class GeoRenderUtil {
+public class GeoEntityRenderUtil {
 
     /**
      * 创建效果实体的渲染器（支持透明度）

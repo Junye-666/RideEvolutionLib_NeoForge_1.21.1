@@ -1,6 +1,5 @@
-package com.jpigeon.rideevolutionlib.client;
+package com.jpigeon.rideevolutionlib;
 
-import com.jpigeon.rideevolutionlib.RideEvolutionLib;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;

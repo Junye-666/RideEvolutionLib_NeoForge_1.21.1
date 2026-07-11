@@ -137,7 +137,7 @@ dependencies {
     implementation "curse.maven:ridebattle-lib-1306849:8411612"
     implementation "top.theillusivec4.curios:curios-neoforge:${curios_version}:api"
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
-    implementation "com.zigythebird.playeranim:PlayerAnimationLibNeo:$pal_version"
+    implementation "curse.maven:playeranimator-658587:7389814"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
