@@ -19,6 +19,28 @@ group = mod_group_id
 
 repositories {
     // Add here additional repositories if required by some of the dependencies below.
+    maven {
+        url "https://cursemaven.com"
+    }
+
+    maven {
+        name = "Illusive Soulworks maven"
+        url = "https://maven.theillusivec4.top/"
+    }
+
+    maven {
+        name = 'GeckoLib'
+        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroup("software.bernie.geckolib")
+        }
+    }
+
+    mavenCentral()
+    maven {
+        name = "RedlanceMinecraft"
+        url = "https://repo.redlance.org/public"
+    }
 }
 
 base {
@@ -112,27 +134,10 @@ configurations {
 }
 
 dependencies {
-    // Example optional mod dependency with JEI
-    // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-    // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
-    // compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
-    // We add the full version to localRuntime, not runtimeOnly, so that we do not publish a dependency on it
-    // localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
-
-    // Example mod dependency using a mod jar from ./libs with a flat dir repository
-    // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
-    // The group id is ignored when searching -- in this case, it is "blank"
-    // implementation "blank:coolmod-${mc_version}:${coolmod_version}"
-
-    // Example mod dependency using a file as dependency
-    // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
-
-    // Example project dependency using a sister or child project:
-    // implementation project(":myproject")
-
-    // For more info:
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+    implementation "curse.maven:ridebattle-lib-1306849:8411612"
+    implementation "top.theillusivec4.curios:curios-neoforge:${curios_version}:api"
+    implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    implementation "com.zigythebird.playeranim:PlayerAnimationLibNeo:$pal_version"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
