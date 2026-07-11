@@ -6,6 +6,8 @@ import com.jpigeon.rideevolutionlib.RideEvolutionLib;
 import com.jpigeon.rideevolutionlib.compat.geckoLib.armor.BaseKamenRiderArmorItem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import dev.kosmx.playerAnim.api.firstPerson.FirstPersonMode;
+import dev.kosmx.playerAnim.impl.IAnimatedPlayer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
@@ -21,7 +23,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderArmEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
@@ -34,6 +38,91 @@ import java.util.Arrays;
 
 @EventBusSubscriber(modid = RideEvolutionLib.MODID, value = Dist.CLIENT)
 public class GeckoArmRenderer {
+
+    // ========== 第一人称手臂渲染 ==========
+    @SubscribeEvent
+    public static void onRenderArm(RenderArmEvent event) {
+        if (!ModList.get().isLoaded("geckolib")) {
+            return;
+        }
+
+        AbstractClientPlayer player = event.getPlayer();
+
+        // 未变身 -> 不处理，使用原版手臂
+        if (!RideBattleAPI.isTransformed(player)) {
+            return;
+        }
+
+        ItemStack chestStack = player.getItemBySlot(EquipmentSlot.CHEST);
+        if (!(chestStack.getItem() instanceof BaseKamenRiderArmorItem armorItem)) {
+            return;
+        }
+
+        // 获取 Gecko 盔甲渲染器（直接使用具体类型）
+        GeoArmorRenderer<BaseKamenRiderArmorItem> renderer = getArmorRenderer(player, chestStack);
+        if (renderer == null) {
+            return;
+        }
+
+        // 准备渲染参数
+        PoseStack poseStack = event.getPoseStack();
+        MultiBufferSource bufferSource = event.getMultiBufferSource();
+        int packedLight = event.getPackedLight();
+        float partialTick = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
+
+        // 获取模型数据
+        GeoModel<BaseKamenRiderArmorItem> geoModel = renderer.getGeoModel();
+        BakedGeoModel bakedModel = geoModel.getBakedModel(geoModel.getModelResource(armorItem, renderer));
+        net.minecraft.resources.ResourceLocation texture = renderer.getTextureLocation(armorItem);
+        if (texture == null) {
+            return;
+        }
+
+        // 开始渲染
+        poseStack.pushPose();
+        try {
+            // 1. 隐藏除手臂外的所有骨骼
+            hideAllBonesExceptArms(renderer);
+
+            // 2. 根据当前渲染的手臂显隐对应骨骼
+            HumanoidArm arm = event.getArm();
+            GeoBone rightArmBone = geoModel.getBone("rightArm").orElse(null);
+            GeoBone leftArmBone = geoModel.getBone("leftArm").orElse(null);
+
+            if (rightArmBone != null) {
+                rightArmBone.setHidden(arm != HumanoidArm.RIGHT);
+            }
+            if (leftArmBone != null) {
+                leftArmBone.setHidden(arm != HumanoidArm.LEFT);
+            }
+
+            // 4. 获取 VertexConsumer 和 RenderType
+            RenderType renderType = RenderType.entityTranslucent(texture);
+            VertexConsumer buffer = bufferSource.getBuffer(renderType);
+
+            // 5. 执行 Gecko 渲染
+            renderer.actuallyRender(
+                    poseStack,
+                    armorItem,
+                    bakedModel,
+                    renderType,
+                    bufferSource,
+                    buffer,
+                    true,
+                    partialTick,
+                    packedLight,
+                    OverlayTexture.NO_OVERLAY,
+                    -1
+            );
+
+            // 6. 取消原版手臂渲染
+            event.setCanceled(true);
+        } finally {
+            poseStack.popPose();
+        }
+    }
+
+
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
@@ -100,7 +189,7 @@ public class GeckoArmRenderer {
 
             // 应用第一人称手臂变换
             HumanoidArm mainArm = player.getMainArm();
-            poseStack.translate(0.0F, 0.0F, 10.0F);
+            applyFirstPersonTransform(poseStack, player, mainArm);
 
             // 隐藏非手臂骨骼
             hideAllBonesExceptArms(renderer);
@@ -143,6 +232,11 @@ public class GeckoArmRenderer {
 
     // ========== 辅助方法 ==========
 
+    private static void applyFirstPersonTransform(PoseStack poseStack, AbstractClientPlayer player, HumanoidArm arm) {
+        poseStack.translate(0.0F, 0.0F, 10F);
+    }
+
+    // ========== 辅助方法 ==========
     private static GeoArmorRenderer<BaseKamenRiderArmorItem> getArmorRenderer(
             AbstractClientPlayer player,
             ItemStack stack) {
