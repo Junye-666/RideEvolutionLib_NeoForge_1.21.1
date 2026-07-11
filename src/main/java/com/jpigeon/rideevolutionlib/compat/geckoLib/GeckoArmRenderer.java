@@ -100,7 +100,7 @@ public class GeckoArmRenderer {
 
             // 应用第一人称手臂变换
             HumanoidArm mainArm = player.getMainArm();
-            applyFirstPersonTransform(poseStack, player, mainArm);
+            poseStack.translate(0.0F, 0.0F, 10.0F);
 
             // 隐藏非手臂骨骼
             hideAllBonesExceptArms(renderer);
@@ -171,9 +171,5 @@ public class GeckoArmRenderer {
             }
         }
         model.getBone("armorBody").ifPresent(bone -> bone.setHidden(true));
-    }
-
-    private static void applyFirstPersonTransform(PoseStack poseStack, AbstractClientPlayer player, HumanoidArm arm) {
-        poseStack.translate(0.0F, 0.0F, 10.0F);
     }
 }
