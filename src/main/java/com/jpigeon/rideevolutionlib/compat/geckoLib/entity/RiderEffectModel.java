@@ -6,7 +6,7 @@ import software.bernie.geckolib.model.GeoModel;
 /**
  * 通用骑士实体模型
  */
-public class RiderEffectModel<T extends BaseKamenRiderEffectEntity>
+public class RiderEffectModel<T extends BaseRiderEffectEntity>
         extends GeoModel<T> {
 
     private final ResourceLocation model;

@@ -9,7 +9,7 @@ import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.model.GeoModel;
 
-public class GenericArmorModel extends GeoModel<BaseKamenRiderArmorItem> {
+public class GenericArmorModel extends GeoModel<BaseRiderArmorItem> {
     private final ResourceLocation modelPath;
     private final ResourceLocation texturePath;
     private final ResourceLocation animationPath;
@@ -22,17 +22,17 @@ public class GenericArmorModel extends GeoModel<BaseKamenRiderArmorItem> {
     }
 
     @Override
-    public ResourceLocation getModelResource(BaseKamenRiderArmorItem armorItem) {
+    public ResourceLocation getModelResource(BaseRiderArmorItem armorItem) {
         return modelPath;
     }
 
     @Override
-    public ResourceLocation getTextureResource(BaseKamenRiderArmorItem armorItem) {
+    public ResourceLocation getTextureResource(BaseRiderArmorItem armorItem) {
         return texturePath;
     }
 
     @Override
-    public ResourceLocation getAnimationResource(BaseKamenRiderArmorItem armorItem) {
+    public ResourceLocation getAnimationResource(BaseRiderArmorItem armorItem) {
         return animationPath;
     }
 
@@ -40,8 +40,8 @@ public class GenericArmorModel extends GeoModel<BaseKamenRiderArmorItem> {
     private GeoBone body;
 
     @Override
-    public void setCustomAnimations(BaseKamenRiderArmorItem animatable, long instanceId,
-                                    AnimationState<BaseKamenRiderArmorItem> animationState) {
+    public void setCustomAnimations(BaseRiderArmorItem animatable, long instanceId,
+                                    AnimationState<BaseRiderArmorItem> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
 
         if (driver == null || body == null) {
@@ -54,7 +54,7 @@ public class GenericArmorModel extends GeoModel<BaseKamenRiderArmorItem> {
         }
     }
 
-    private void applyBeltConstraint(AnimationState<BaseKamenRiderArmorItem> animationState) {
+    private void applyBeltConstraint(AnimationState<BaseRiderArmorItem> animationState) {
         Entity entity = animationState.getData(DataTickets.ENTITY);
         EquipmentSlot slot = animationState.getData(DataTickets.EQUIPMENT_SLOT);
 
@@ -72,5 +72,4 @@ public class GenericArmorModel extends GeoModel<BaseKamenRiderArmorItem> {
             }
         }
     }
-
 }

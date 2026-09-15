@@ -1,35 +1,46 @@
-package com.jpigeon.rideevolutionlib.compat.geckoLib.item;
+package com.jpigeon.rideevolutionlib.compat.geckoLib.armor;
 
 import com.jpigeon.rideevolutionlib.compat.geckoLib.AnimationManager;
+import com.jpigeon.rideevolutionlib.compat.util.GeoRenderRegistryUtil;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.*;
-import software.bernie.geckolib.renderer.GeoItemRenderer;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static software.bernie.geckolib.animation.Animation.LoopType.*;
 
-public abstract class BaseKamenRiderGeoItem extends Item implements GeoItem {
+public abstract class BaseRiderArmorItem extends ArmorItem implements GeoItem {
     protected final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     protected final String modId;
     protected final String riderName;
-    protected final String itemName;
+    protected final String formName;
     protected final boolean animated;
-    protected final AnimationManager<BaseKamenRiderGeoItem> animationManager;
-    protected final Map<String, AnimationController<BaseKamenRiderGeoItem>> controllers = new HashMap<>();
+    protected final AnimationManager<BaseRiderArmorItem> animationManager;
+    protected final Map<String, AnimationController<BaseRiderArmorItem>> controllers = new HashMap<>();
 
-    public BaseKamenRiderGeoItem(String modId, String riderName, String itemName,  Properties properties, boolean animated) {
-        super(properties);
+    @OnlyIn(Dist.CLIENT)
+    private GenericArmorRenderer cachedRenderer;
+
+    public BaseRiderArmorItem(String modId, String riderName, String formName, Holder<ArmorMaterial> material, Type type, Properties properties, boolean animated) {
+        super(material, type, properties.stacksTo(1));
         this.modId = modId;
         this.riderName = riderName;
-        this.itemName = itemName;
+        this.formName = formName;
         this.animated = animated;
         this.animationManager = new AnimationManager<>(this);
     }
@@ -39,10 +50,32 @@ public abstract class BaseKamenRiderGeoItem extends Item implements GeoItem {
         registerAnimationControllers(registrar);
     }
 
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public GeoRenderProvider getRenderProvider() {
+        return new GeoRenderProvider() {
+            @Override
+            public <T extends LivingEntity> HumanoidModel<?> getGeoArmorRenderer(
+                    @Nullable T livingEntity, ItemStack itemStack,
+                    @Nullable EquipmentSlot slot, @Nullable HumanoidModel<T> original) {
+                if (cachedRenderer == null) {
+                    cachedRenderer = GeoRenderRegistryUtil.createArmorRenderer(modId, riderName, formName, animated);
+                }
+                return cachedRenderer;
+            }
+        };
+    }
+
+    /**
+     * 子类必须实现的动画控制器注册方法
+     */
     protected abstract void registerAnimationControllers(AnimatableManager.ControllerRegistrar registrar);
 
+    /**
+     * 添加动画控制器并存储引用
+     */
     protected void addController(AnimatableManager.ControllerRegistrar registrar, String name,
-                                 AnimationController<BaseKamenRiderGeoItem> controller) {
+                                 AnimationController<BaseRiderArmorItem> controller) {
         controllers.put(name, controller);
         animationManager.registerController(name, controller);
         registrar.add(controller);
@@ -56,22 +89,19 @@ public abstract class BaseKamenRiderGeoItem extends Item implements GeoItem {
         return animationManager.getCurrentState();
     }
 
-    protected AnimationController<BaseKamenRiderGeoItem> createLoopController(
-            String animationName) {
-        return createStateController(animationName, LOOP);
+    protected AnimationController<BaseRiderArmorItem> createLoopController(String anim) {
+        return animationManager.loop(anim);
     }
 
-    protected AnimationController<BaseKamenRiderGeoItem> createOnceController(
-            String animationName) {
-        return createStateController(animationName, PLAY_ONCE);
+    protected AnimationController<BaseRiderArmorItem> createOnceController(String anim) {
+        return animationManager.once(anim);
     }
 
-    protected AnimationController<BaseKamenRiderGeoItem> createHoldController(
-            String animationName) {
-        return createStateController(animationName, HOLD_ON_LAST_FRAME);
+    protected AnimationController<BaseRiderArmorItem> createHoldController(String anim) {
+        return animationManager.hold(anim);
     }
 
-    protected AnimationController<BaseKamenRiderGeoItem> createStateController(
+    protected AnimationController<BaseRiderArmorItem> createStateController(
             String animationName, Animation.LoopType loopType) {
         return new AnimationController<>(this, animationName + "_controller", 0, state -> {
             // 只有当管理器当前状态匹配时才播放动画
@@ -94,40 +124,24 @@ public abstract class BaseKamenRiderGeoItem extends Item implements GeoItem {
         return cache;
     }
 
-    @Override
-    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
-        consumer.accept(new GeoRenderProvider() {
-            private GeoItemRenderer<BaseKamenRiderGeoItem> renderer;
-
-            @Override
-            public GeoItemRenderer<BaseKamenRiderGeoItem> getGeoItemRenderer() {
-                if (this.renderer == null) {
-                    this.renderer = createRenderer();
-                }
-                return this.renderer;
-            }
-        });
-    }
-
-    protected abstract GeoItemRenderer<BaseKamenRiderGeoItem> createRenderer();
-
     // 资源路径生成工具方法
     protected ResourceLocation getModelPath() {
         return ResourceLocation.fromNamespaceAndPath(modId,
-                "geo/" + riderName.toLowerCase() + "/item/" + riderName.toLowerCase() + "_" + itemName.toLowerCase() + ".geo.json");
+                "geo/" + riderName.toLowerCase() + "/armor/" + riderName.toLowerCase() + "_" + formName.toLowerCase() + ".geo.json");
+
     }
 
     protected ResourceLocation getTexturePath() {
         return ResourceLocation.fromNamespaceAndPath(modId,
-                "textures/item/" + riderName.toLowerCase() + "/geo_item/" + riderName.toLowerCase() + "_" + itemName.toLowerCase() + ".png");
+                "textures/armor/" + riderName.toLowerCase() + "/" + riderName.toLowerCase() + "_" + formName.toLowerCase() + ".png");
     }
 
     protected ResourceLocation getAnimationPath() {
         if (animated) {
             return ResourceLocation.fromNamespaceAndPath(modId,
-                    "animations/" + riderName.toLowerCase() + "/item/" + riderName.toLowerCase() + "_" + itemName.toLowerCase() + ".animation.json");
+                    "animations/" + riderName.toLowerCase() + "/" + riderName.toLowerCase() + "_" + formName.toLowerCase() + ".animation.json");
         }
         return ResourceLocation.fromNamespaceAndPath(modId,
-                "animations/no_item.animation.json");
+                "animations/no_armor.animation.json");
     }
 }

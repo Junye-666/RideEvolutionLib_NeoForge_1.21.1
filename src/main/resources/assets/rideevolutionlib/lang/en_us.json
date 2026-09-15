@@ -1,3 +1,4 @@
 {
-  "rideevolutionlib.configuration.firstPersonArmRender": "Render First Person Arm"
+  "rideevolutionlib.configuration.firstPersonArmRender": "Activate Render for First Person Arm",
+  "rideevolutionlib.configuration.fallbackHenshinRenderMode": "Activate Fallback Henshin Render"
 }

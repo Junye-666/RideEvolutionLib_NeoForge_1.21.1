@@ -3,7 +3,7 @@ package com.jpigeon.rideevolutionlib.compat.geckoLib.item;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
 
-public class GenericItemModel extends GeoModel<BaseKamenRiderGeoItem> {
+public class GenericItemModel extends GeoModel<BaseRiderGeoItem> {
     private final ResourceLocation modelPath;
     private final ResourceLocation texturePath;
     private final ResourceLocation animationPath;
@@ -16,17 +16,17 @@ public class GenericItemModel extends GeoModel<BaseKamenRiderGeoItem> {
     }
 
     @Override
-    public ResourceLocation getModelResource(BaseKamenRiderGeoItem item) {
+    public ResourceLocation getModelResource(BaseRiderGeoItem item) {
         return modelPath;
     }
 
     @Override
-    public ResourceLocation getTextureResource(BaseKamenRiderGeoItem item) {
+    public ResourceLocation getTextureResource(BaseRiderGeoItem item) {
         return texturePath;
     }
 
     @Override
-    public ResourceLocation getAnimationResource(BaseKamenRiderGeoItem item) {
+    public ResourceLocation getAnimationResource(BaseRiderGeoItem item) {
         return animationPath;
     }
 }

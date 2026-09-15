@@ -16,16 +16,16 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class BaseKamenRiderEffectEntity extends Entity implements GeoEntity {
+public abstract class BaseRiderEffectEntity extends Entity implements GeoEntity {
     protected final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     protected final String modId;
     protected final String riderName;
     protected final String entityName;
 
-    protected final Map<String, AnimationController<BaseKamenRiderEffectEntity>> controllers = new HashMap<>();
+    protected final Map<String, AnimationController<BaseRiderEffectEntity>> controllers = new HashMap<>();
 
-    public BaseKamenRiderEffectEntity(EntityType<?> entityType, Level level,
-                                      String modId, String riderName, String entityName) {
+    public BaseRiderEffectEntity(EntityType<?> entityType, Level level,
+                                 String modId, String riderName, String entityName) {
         super(entityType, level);
         this.modId = modId;
         this.riderName = riderName;
@@ -49,7 +49,7 @@ public abstract class BaseKamenRiderEffectEntity extends Entity implements GeoEn
      * 添加动画控制器并存储引用
      */
     protected void addController(AnimatableManager.ControllerRegistrar registrar, String name,
-                                 AnimationController<BaseKamenRiderEffectEntity> controller) {
+                                 AnimationController<BaseRiderEffectEntity> controller) {
         controllers.put(name, controller);
         registrar.add(controller);
     }
@@ -58,14 +58,14 @@ public abstract class BaseKamenRiderEffectEntity extends Entity implements GeoEn
      * 获取指定的动画控制器
      */
     @Nullable
-    public AnimationController<BaseKamenRiderEffectEntity> getController(String name) {
+    public AnimationController<BaseRiderEffectEntity> getController(String name) {
         return controllers.get(name);
     }
 
     /**
      * 创建简单的循环动画控制器
      */
-    protected AnimationController<BaseKamenRiderEffectEntity> createLoopController(String animationName) {
+    protected AnimationController<BaseRiderEffectEntity> createLoopController(String animationName) {
         return new AnimationController<>(this, animationName + "_controller", 0, state -> {
             state.getController().setAnimation(RawAnimation.begin().thenLoop(animationName));
             return PlayState.CONTINUE;
@@ -75,7 +75,7 @@ public abstract class BaseKamenRiderEffectEntity extends Entity implements GeoEn
     /**
      * 创建单次播放动画控制器
      */
-    protected AnimationController<BaseKamenRiderEffectEntity> createOnceController(String animationName) {
+    protected AnimationController<BaseRiderEffectEntity> createOnceController(String animationName) {
         return new AnimationController<>(this, animationName + "_controller", 0, state -> {
             state.getController().setAnimation(
                     RawAnimation.begin().then(animationName, Animation.LoopType.HOLD_ON_LAST_FRAME)
@@ -129,13 +129,16 @@ public abstract class BaseKamenRiderEffectEntity extends Entity implements GeoEn
 
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {}
+    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
+    }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {}
+    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {}
+    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    }
 
     @Override
     public boolean fireImmune() {
@@ -158,3 +161,4 @@ public abstract class BaseKamenRiderEffectEntity extends Entity implements GeoEn
         return false;
     }
 }
+

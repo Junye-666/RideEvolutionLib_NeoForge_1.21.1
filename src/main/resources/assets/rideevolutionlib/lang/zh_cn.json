@@ -1,0 +1,4 @@
+{
+  "rideevolutionlib.configuration.firstPersonArmRender": "渲染第一人称手臂",
+  "rideevolutionlib.configuration.fallbackHenshinRenderMode": "启用后备变身渲染模式"
+}

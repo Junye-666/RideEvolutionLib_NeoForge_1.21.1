@@ -17,7 +17,7 @@ import javax.annotation.Nullable;
 /**
  * 通用骑士实体渲染器（支持透明度）
  */
-public class RiderEffectRenderer<T extends BaseKamenRiderEffectEntity> extends GeoEntityRenderer<T> {
+public class RiderEffectRenderer<T extends BaseRiderEffectEntity> extends GeoEntityRenderer<T> {
 
     public RiderEffectRenderer(
             EntityRendererProvider.Context context,
@@ -56,7 +56,14 @@ public class RiderEffectRenderer<T extends BaseKamenRiderEffectEntity> extends G
             // 应用透明度
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, alpha);
 
-            super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
+            try {
+                super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
+
+            } finally {
+                // 恢复全局渲染状态
+                RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+                RenderSystem.disableBlend();
+            }
         } else {
             // 正常渲染
             super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
@@ -66,7 +73,7 @@ public class RiderEffectRenderer<T extends BaseKamenRiderEffectEntity> extends G
     }
 
     @Override
-    public @Nullable RenderType getRenderType(BaseKamenRiderEffectEntity animatable, ResourceLocation texture,
+    public @Nullable RenderType getRenderType(BaseRiderEffectEntity animatable, ResourceLocation texture,
                                               @Nullable MultiBufferSource bufferSource, float partialTick) {
         // 根据是否应用透明度选择合适的渲染类型
         if (animatable.shouldApplyTransparency()) {

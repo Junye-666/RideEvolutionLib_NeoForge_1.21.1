@@ -39,8 +39,14 @@ public abstract class BaseRiderGeoBlockEntity extends BlockEntity implements Geo
         registerAnimationControllers(registrar);
     }
 
+    /**
+     * 子类必须实现的动画控制器注册方法
+     */
     protected abstract void registerAnimationControllers(AnimatableManager.ControllerRegistrar registrar);
 
+    /**
+     * 添加动画控制器并存储引用
+     */
     protected void addController(AnimatableManager.ControllerRegistrar registrar, String name,
                                  AnimationController<BaseRiderGeoBlockEntity> controller) {
         controllers.put(name, controller);
@@ -56,19 +62,16 @@ public abstract class BaseRiderGeoBlockEntity extends BlockEntity implements Geo
         return animationManager.getCurrentState();
     }
 
-    protected AnimationController<BaseRiderGeoBlockEntity> createLoopController(
-            String animationName) {
-        return createStateController(animationName, LOOP);
+    protected AnimationController<BaseRiderGeoBlockEntity> createLoopController(String anim) {
+        return animationManager.loop(anim);
     }
 
-    protected AnimationController<BaseRiderGeoBlockEntity> createOnceController(
-            String animationName) {
-        return createStateController(animationName, PLAY_ONCE);
+    protected AnimationController<BaseRiderGeoBlockEntity> createOnceController(String anim) {
+        return animationManager.once(anim);
     }
 
-    protected AnimationController<BaseRiderGeoBlockEntity> createHoldController(
-            String animationName) {
-        return createStateController(animationName, HOLD_ON_LAST_FRAME);
+    protected AnimationController<BaseRiderGeoBlockEntity> createHoldController(String anim) {
+        return animationManager.hold(anim);
     }
 
     protected AnimationController<BaseRiderGeoBlockEntity> createStateController(

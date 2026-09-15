@@ -1,8 +1,8 @@
 package com.jpigeon.rideevolutionlib.compat.curios;
 
 import com.jpigeon.ridebattlelib.common.config.RiderConfig;
-import com.jpigeon.ridebattlelib.common.event.FindRiderConfigEvent;
 import com.jpigeon.ridebattlelib.common.registry.RiderRegistry;
+import com.jpigeon.ridebattlelib.server.event.FindRiderConfigEvent;
 import com.jpigeon.rideevolutionlib.RideEvolutionLib;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
