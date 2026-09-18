@@ -17,6 +17,7 @@ public class CuriosLoader {
 
     private static Method getCuriosInventoryMethod;
     private static Method findFirstCurioMethod;
+    private static boolean available = false;
 
     static {
         if (CURIOS_LOADED) {
@@ -27,29 +28,24 @@ public class CuriosLoader {
                 Class<?> handlerClass = Class.forName("top.theillusivec4.curios.api.type.capability.ICuriosItemHandler");
                 findFirstCurioMethod = handlerClass.getMethod("findFirstCurio", Item.class);
 
+                available = true;
             } catch (Exception e) {
-                LOGGER.error("Failed to initialize Curios reflection", e);
-                // 标记为不可用，后续调用会直接返回 false
+                LOGGER.error("Failed to initialize Curios reflection — Curios 集成将不可用", e);
+                available = false;
             }
         }
     }
 
-    /**
-     * 检查玩家是否在 Curios 槽位中装备了指定物品（仅当 Curios 加载时）
-     */
+    /** 供外部判断 Curios 集成是否可用 */
+    public static boolean isAvailable() {
+        return available;
+    }
+
     public static boolean isItemInCurios(Player player, Item item) {
-        if (!CURIOS_LOADED || player == null || item == null) {
-            return false;
-        }
-        if (getCuriosInventoryMethod == null || findFirstCurioMethod == null) {
-            return false;
-        }
+        if (!available || player == null || item == null) return false;
         try {
-            // 调用 CuriosApi.getCuriosInventory(player)
             Optional<?> handlerOpt = (Optional<?>) getCuriosInventoryMethod.invoke(null, player);
-            if (handlerOpt.isEmpty()) {
-                return false;
-            }
+            if (handlerOpt.isEmpty()) return false;
             Object handler = handlerOpt.get();
             Optional<?> resultOpt = (Optional<?>) findFirstCurioMethod.invoke(handler, item);
             return resultOpt != null && resultOpt.isPresent();
@@ -59,15 +55,8 @@ public class CuriosLoader {
         }
     }
 
-    /**
-     * 综合检查：原版槽位 + Curios 槽位
-     */
     public static boolean isDriverEquipped(Player player, Item driverItem, EquipmentSlot fallbackSlot) {
-        // 先检查原版槽位
-        if (player.getItemBySlot(fallbackSlot).is(driverItem)) {
-            return true;
-        }
-        // 再检查 Curios
+        if (player.getItemBySlot(fallbackSlot).is(driverItem)) return true;
         return isItemInCurios(player, driverItem);
     }
 }

@@ -19,21 +19,26 @@ import software.bernie.geckolib.animatable.GeoItem;
 @OnlyIn(Dist.CLIENT)
 public class PlayerBonesVisibilityEvent extends Event {
     private final ResourceLocation riderId;
-    private boolean headVisible;
-    private boolean hatVisible;
-    private boolean bodyVisible;
-    private boolean rightArmVisible;
-    private boolean leftArmVisible;
-    private boolean rightLegVisible;
-    private boolean leftLegVisible;
-    private boolean leftSleeveVisible;
-    private boolean rightSleeveVisible;
-    private boolean leftPantsVisible;
-    private boolean rightPantsVisible;
-    private boolean jacketVisible;
+    private boolean headVisible = true;
+    private boolean hatVisible = true;
+    private boolean bodyVisible = true;
+    private boolean rightArmVisible = true;
+    private boolean leftArmVisible = true;
+    private boolean rightLegVisible = true;
+    private boolean leftLegVisible = true;
+    private boolean leftSleeveVisible = true;
+    private boolean rightSleeveVisible = true;
+    private boolean leftPantsVisible = true;
+    private boolean rightPantsVisible = true;
+    private boolean jacketVisible = true;
 
     public PlayerBonesVisibilityEvent(Player player, ResourceLocation riderId) {
         this.riderId = riderId;
+    }
+
+    public static PlayerBonesVisibilityEvent fromPlayer(Player player, ResourceLocation riderId) {
+        PlayerBonesVisibilityEvent event = new PlayerBonesVisibilityEvent(player, riderId);
+
         ItemStack head = player.getItemBySlot(EquipmentSlot.HEAD);
         ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
         ItemStack boot = player.getItemBySlot(EquipmentSlot.FEET);
@@ -42,21 +47,20 @@ public class PlayerBonesVisibilityEvent extends Event {
         boolean chestGeo = chest.getItem() instanceof GeoItem;
         boolean bootGeo = boot.getItem() instanceof GeoItem;
 
-        // 头部
-        this.headVisible = !headGeo;
-        this.hatVisible = !headGeo;
-        // 身体 & 袖子 & 夹克
-        this.bodyVisible = !chestGeo;
-        this.rightArmVisible = !chestGeo;
-        this.leftArmVisible = !chestGeo;
-        this.leftSleeveVisible = !chestGeo;
-        this.rightSleeveVisible = !chestGeo;
-        this.jacketVisible = !chestGeo;
-        // 腿部 & 裤子
-        this.rightLegVisible = !bootGeo;
-        this.leftLegVisible = !bootGeo;
-        this.leftPantsVisible = !bootGeo;
-        this.rightPantsVisible = !bootGeo;
+        event.headVisible = !headGeo;
+        event.hatVisible = !headGeo;
+        event.bodyVisible = !chestGeo;
+        event.rightArmVisible = !chestGeo;
+        event.leftArmVisible = !chestGeo;
+        event.leftSleeveVisible = !chestGeo;
+        event.rightSleeveVisible = !chestGeo;
+        event.jacketVisible = !chestGeo;
+        event.rightLegVisible = !bootGeo;
+        event.leftLegVisible = !bootGeo;
+        event.leftPantsVisible = !bootGeo;
+        event.rightPantsVisible = !bootGeo;
+
+        return event;
     }
 
     public boolean isHeadVisible() {

@@ -15,6 +15,7 @@ public class CuriosIntegration {
     public static void onFindRiderConfig(FindRiderConfigEvent event) {
         // 如果已经有外部强制指定，则跳过
         if (event.getConfig() != null) return;
+        if (!CuriosLoader.isAvailable()) return;
 
         Player player = event.getPlayer();
 

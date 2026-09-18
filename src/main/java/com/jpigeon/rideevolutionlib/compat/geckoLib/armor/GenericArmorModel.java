@@ -1,5 +1,6 @@
 package com.jpigeon.rideevolutionlib.compat.geckoLib.armor;
 
+import com.jpigeon.rideevolutionlib.RideEvolutionLib;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -39,14 +40,22 @@ public class GenericArmorModel extends GeoModel<BaseRiderArmorItem> {
     private GeoBone driver;
     private GeoBone body;
 
+    private boolean bonesResolved = false;
+
     @Override
     public void setCustomAnimations(BaseRiderArmorItem animatable, long instanceId,
                                     AnimationState<BaseRiderArmorItem> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
 
-        if (driver == null || body == null) {
+        if (!bonesResolved) {
             driver = this.getBone("driver").orElse(null);
             body = this.getBone("armorBody").orElse(null);
+            bonesResolved = true;
+            if (driver == null || body == null) {
+                RideEvolutionLib.LOGGER.warn(
+                        "GenericArmorModel: 骨骼缺失 driver={} armorBody={}，腰带约束将不生效",
+                        driver != null, body != null);
+            }
         }
 
         if (driver != null && body != null) {

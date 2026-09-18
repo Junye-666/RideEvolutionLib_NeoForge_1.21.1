@@ -25,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RenderArmEvent;
 import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -36,10 +37,15 @@ import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoArmorRenderer;
 
-import java.util.Arrays;
+import javax.annotation.Nullable;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @EventBusSubscriber(modid = RideEvolutionLib.MODID, value = Dist.CLIENT)
 public class ClientArmRenderer {
+    private static final Set<UUID> FALLBACK_HIDDEN = ConcurrentHashMap.newKeySet();
+
     @SubscribeEvent
     public static void onRenderHand(RenderArmEvent event) {
         Minecraft mc = Minecraft.getInstance();
@@ -100,19 +106,25 @@ public class ClientArmRenderer {
     public static <T extends Item & GeoAnimatable & GeoItem> void hideAllBonesExceptArms(GeoArmorRenderer<T> render) {
         GeoModel<T> model = render.getGeoModel();
         try {
-            for (GeoBone geoBone : Arrays.asList(
-                    render.getHeadBone(model),
-                    render.getBodyBone(model),
-                    render.getRightLegBone(model),
-                    render.getRightBootBone(model),
-                    render.getLeftLegBone(model),
-                    render.getLeftBootBone(model)
-            )) {
-                if (geoBone != null) {
-                    geoBone.setHidden(true);
-                }
-            }
-        } catch (Exception ignored) {
+            hideBone(render.getHeadBone(model), "head");
+            hideBone(render.getBodyBone(model), "body");
+            hideBone(render.getRightLegBone(model), "rightLeg");
+            hideBone(render.getRightBootBone(model), "rightBoot");
+            hideBone(render.getLeftLegBone(model), "leftLeg");
+            hideBone(render.getLeftBootBone(model), "leftBoot");
+        } catch (Exception e) {
+            RideEvolutionLib.LOGGER.warn(
+                    "hideAllBonesExceptArms: 骨骼隐藏时异常 (model={})",
+                    model.getClass().getSimpleName(), e);
+        }
+    }
+
+    private static void hideBone(@Nullable GeoBone bone, String name) {
+        if (bone != null) {
+            bone.setHidden(true);
+        } else {
+            RideEvolutionLib.LOGGER.debug(
+                    "hideAllBonesExceptArms: 未找到骨骼 '{}'（可能命名不一致或未烘焙）", name);
         }
     }
 
@@ -125,9 +137,20 @@ public class ClientArmRenderer {
             player.setInvisible(false);
             return;
         }
+        UUID id = player.getUUID();
+        if (!RideBattleAPI.isTransformed(player)) {
+            // 只恢复本 mod 设过的隐身，不碰其它来源
+            if (FALLBACK_HIDDEN.remove(id)) {
+                player.setInvisible(false);
+            }
+            return;
+        }
         if (Config.FALLBACK_HENSHIN_RENDER_MODE.get()) {
             player.setInvisible(true);
             return;
+        }
+        if (FALLBACK_HIDDEN.remove(id)) {
+            player.setInvisible(false);
         }
 
         EntityRenderDispatcher entityrenderdispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
@@ -136,7 +159,9 @@ public class ClientArmRenderer {
 
         RiderConfig config = RiderConfig.findActiveDriverConfig(player);
         if (config == null) return;
-        PlayerBonesVisibilityEvent visibilityEvent = new PlayerBonesVisibilityEvent(player, config.getRiderId());
+
+        PlayerBonesVisibilityEvent visibilityEvent =
+                PlayerBonesVisibilityEvent.fromPlayer(player, config.getRiderId());
         NeoForge.EVENT_BUS.post(visibilityEvent);
 
         model.head.visible = visibilityEvent.isHeadVisible();
@@ -151,5 +176,12 @@ public class ClientArmRenderer {
         model.leftPants.visible = visibilityEvent.isLeftPantsVisible();
         model.rightPants.visible = visibilityEvent.isRightPantsVisible();
         model.jacket.visible = visibilityEvent.isJacketVisible();
+    }
+
+    @SubscribeEvent
+    public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        if (event.getPlayer() != null) {
+            FALLBACK_HIDDEN.remove(event.getPlayer().getUUID());
+        }
     }
 }

@@ -9,7 +9,7 @@ public class Config {
 
     static {
         FIRST_PERSON_ARM_RENDER = BUILDER
-                .comment("渲染第一人称手臂上的盔甲")
+                .comment("第一人称下用 GeoArmorRenderer 重定向渲染手臂盔甲")
                 .define("firstPersonArmRender", true);
 
         FALLBACK_HENSHIN_RENDER_MODE = BUILDER
