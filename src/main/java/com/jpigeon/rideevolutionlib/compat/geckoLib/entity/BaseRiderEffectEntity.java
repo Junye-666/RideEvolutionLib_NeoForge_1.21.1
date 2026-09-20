@@ -127,7 +127,6 @@ public abstract class BaseRiderEffectEntity extends Entity implements GeoEntity 
 
     //========== 实体基础方法 ==========
 
-
     @Override
     protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
     }

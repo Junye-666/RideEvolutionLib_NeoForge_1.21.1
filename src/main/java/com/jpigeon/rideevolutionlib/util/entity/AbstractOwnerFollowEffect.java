@@ -45,7 +45,6 @@ public abstract class AbstractOwnerFollowEffect extends BaseRiderEffectEntity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder);
         builder.define(ownerAccessor(), Optional.empty());
     }
 
