@@ -33,4 +33,3 @@ public class GenericBlockEntityModel extends GeoModel<BaseRiderGeoBlockEntity> {
         return animationPath;
     }
 }
-

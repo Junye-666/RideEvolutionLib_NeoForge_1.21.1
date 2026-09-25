@@ -10,4 +10,3 @@ public class GenericBlockEntityRenderer extends GeoBlockRenderer<BaseRiderGeoBlo
         super(model);
     }
 }
-
