@@ -1,5 +1,6 @@
 package com.jpigeon.rideevolutionlib.compat.geckoLib.entity;
 
+import com.jpigeon.rideevolutionlib.compat.util.GeoResourcePaths;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
@@ -16,12 +17,26 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 通用骑士 Geo 效果实体基类。
+ * <p>
+ * 不使用动画状态机：注册的 controller 一律"无条件播放"。
+ * 特效实体通常只播一个动画，播完由 {@code tick()} 里的生命周期逻辑 discard。
+ * <p>
+ * 如需在外部动态切换某个 controller 的动画，可通过 {@link #getController(String)}
+ * 拿到 controller 引用后自行操作。
+ */
 public abstract class BaseRiderEffectEntity extends Entity implements GeoEntity {
-    protected final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     protected final String modId;
     protected final String riderName;
     protected final String entityName;
 
+    protected final GeoResourcePaths paths;
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+
+    /**
+     * 名称 → 控制器。供 {@link #getController(String)} 使用。
+     */
     protected final Map<String, AnimationController<BaseRiderEffectEntity>> controllers = new HashMap<>();
 
     public BaseRiderEffectEntity(EntityType<?> entityType, Level level,
@@ -30,90 +45,80 @@ public abstract class BaseRiderEffectEntity extends Entity implements GeoEntity 
         this.modId = modId;
         this.riderName = riderName;
         this.entityName = entityName;
+        this.paths = GeoResourcePaths.entity(modId, riderName, entityName);
 
         this.noPhysics = true;
         this.setNoGravity(true);
     }
+
+    // ==================== 动画 ====================
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar registrar) {
         registerAnimationControllers(registrar);
     }
 
-    /**
-     * 子类必须实现的动画控制器注册方法
-     */
     protected abstract void registerAnimationControllers(AnimatableManager.ControllerRegistrar registrar);
 
-    /**
-     * 添加动画控制器并存储引用
-     */
-    protected void addController(AnimatableManager.ControllerRegistrar registrar, String name,
+    protected void addController(AnimatableManager.ControllerRegistrar registrar,
+                                 String name,
                                  AnimationController<BaseRiderEffectEntity> controller) {
         controllers.put(name, controller);
         registrar.add(controller);
     }
 
-    /**
-     * 获取指定的动画控制器
-     */
     @Nullable
     public AnimationController<BaseRiderEffectEntity> getController(String name) {
         return controllers.get(name);
     }
 
     /**
-     * 创建简单的循环动画控制器
+     * 循环播放。
      */
-    protected AnimationController<BaseRiderEffectEntity> createLoopController(String animationName) {
-        return new AnimationController<>(this, animationName + "_controller", 0, state -> {
-            state.getController().setAnimation(RawAnimation.begin().thenLoop(animationName));
+    protected AnimationController<BaseRiderEffectEntity> createLoopController(String anim) {
+        return new AnimationController<>(this, anim + "_controller", 0, state -> {
+            state.getController().setAnimation(RawAnimation.begin().thenLoop(anim));
             return PlayState.CONTINUE;
         });
     }
 
     /**
-     * 创建单次播放动画控制器
+     * 播放一次即停（{@code PLAY_ONCE}）。
      */
-    protected AnimationController<BaseRiderEffectEntity> createOnceController(String animationName) {
-        return new AnimationController<>(this, animationName + "_controller", 0, state -> {
+    protected AnimationController<BaseRiderEffectEntity> createOnceController(String anim) {
+        return new AnimationController<>(this, anim + "_controller", 0, state -> {
             state.getController().setAnimation(
-                    RawAnimation.begin().then(animationName, Animation.LoopType.HOLD_ON_LAST_FRAME)
-            );
+                    RawAnimation.begin().then(anim, Animation.LoopType.PLAY_ONCE));
             return PlayState.CONTINUE;
         });
     }
 
-    //========== 资源路径生成工具方法 ==========
-
     /**
-     * 获取模型资源路径
+     * 播放一次并停在最后一帧（{@code HOLD_ON_LAST_FRAME}）。
      */
+    protected AnimationController<BaseRiderEffectEntity> createHoldController(String anim) {
+        return new AnimationController<>(this, anim + "_controller", 0, state -> {
+            state.getController().setAnimation(
+                    RawAnimation.begin().then(anim, Animation.LoopType.HOLD_ON_LAST_FRAME));
+            return PlayState.CONTINUE;
+        });
+    }
+
+    // ==================== 资源路径 ====================
+
     protected ResourceLocation getModelPath() {
-        return ResourceLocation.fromNamespaceAndPath(modId,
-                "geo/" + riderName.toLowerCase() + "/entity/" +
-                        riderName.toLowerCase() + "_" + entityName.toLowerCase() + ".geo.json");
+        return paths.model();
     }
 
-    /**
-     * 获取纹理资源路径
-     */
     protected ResourceLocation getTexturePath() {
-        return ResourceLocation.fromNamespaceAndPath(modId,
-                "textures/entity/" + riderName.toLowerCase() + "/" +
-                        riderName.toLowerCase() + "_" + entityName.toLowerCase() + ".png");
+        return paths.texture();
     }
 
-    /**
-     * 获取动画资源路径
-     */
     protected ResourceLocation getAnimationPath() {
-        return ResourceLocation.fromNamespaceAndPath(modId,
-                "animations/" + riderName.toLowerCase() + "/entity/" +
-                        riderName.toLowerCase() + "_" + entityName.toLowerCase() + ".animation.json");
+        return paths.animation();
     }
 
-    //========== GeckoLib接口实现 ==========
+    // ==================== GeoEntity ====================
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
@@ -125,7 +130,7 @@ public abstract class BaseRiderEffectEntity extends Entity implements GeoEntity 
         return tickCount;
     }
 
-    //========== 实体基础方法 ==========
+    // ==================== Entity 基础 ====================
 
     @Override
     protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
@@ -144,20 +149,13 @@ public abstract class BaseRiderEffectEntity extends Entity implements GeoEntity 
         return true;
     }
 
-    //========== 可选的透明度支持 ==========
+    // ==================== 透明度支持 ====================
 
-    /**
-     * 获取当前透明度（0.0-1.0），子类可重写
-     */
     public float getCurrentAlpha() {
         return 1.0f;
     }
 
-    /**
-     * 是否应用透明度效果
-     */
     public boolean shouldApplyTransparency() {
         return false;
     }
 }
-

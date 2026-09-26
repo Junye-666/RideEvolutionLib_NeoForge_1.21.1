@@ -9,6 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -44,7 +45,7 @@ public abstract class AbstractOwnerFollowEffect extends BaseRiderEffectEntity {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
         builder.define(ownerAccessor(), Optional.empty());
     }
 
@@ -78,7 +79,7 @@ public abstract class AbstractOwnerFollowEffect extends BaseRiderEffectEntity {
     protected void onEffectEnd() {}
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
         entityData.get(ownerAccessor()).ifPresent(u -> tag.putUUID("OwnerUUID", u));
     }
 

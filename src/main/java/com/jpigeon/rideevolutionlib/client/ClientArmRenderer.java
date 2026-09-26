@@ -25,7 +25,6 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RenderArmEvent;
 import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -38,14 +37,9 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoArmorRenderer;
 
 import javax.annotation.Nullable;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @EventBusSubscriber(modid = RideEvolutionLib.MODID, value = Dist.CLIENT)
 public class ClientArmRenderer {
-    private static final Set<UUID> FALLBACK_HIDDEN = ConcurrentHashMap.newKeySet();
-
     @SubscribeEvent
     public static void onRenderHand(RenderArmEvent event) {
         Minecraft mc = Minecraft.getInstance();
@@ -134,23 +128,12 @@ public class ClientArmRenderer {
         Player player = event.getEntity();
         if (player.hasEffect(MobEffects.INVISIBILITY)) return;
         if (!RideBattleAPI.isTransformed(player)) {
-            player.setInvisible(false);
-            return;
-        }
-        UUID id = player.getUUID();
-        if (!RideBattleAPI.isTransformed(player)) {
-            // 只恢复本 mod 设过的隐身，不碰其它来源
-            if (FALLBACK_HIDDEN.remove(id)) {
-                player.setInvisible(false);
-            }
+            if (player.isInvisible()) player.setInvisible(false);
             return;
         }
         if (Config.FALLBACK_HENSHIN_RENDER_MODE.get()) {
             player.setInvisible(true);
             return;
-        }
-        if (FALLBACK_HIDDEN.remove(id)) {
-            player.setInvisible(false);
         }
 
         EntityRenderDispatcher entityrenderdispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
@@ -176,12 +159,5 @@ public class ClientArmRenderer {
         model.leftPants.visible = visibilityEvent.isLeftPantsVisible();
         model.rightPants.visible = visibilityEvent.isRightPantsVisible();
         model.jacket.visible = visibilityEvent.isJacketVisible();
-    }
-
-    @SubscribeEvent
-    public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
-        if (event.getPlayer() != null) {
-            FALLBACK_HIDDEN.remove(event.getPlayer().getUUID());
-        }
     }
 }

@@ -18,6 +18,7 @@ import software.bernie.geckolib.animatable.GeoItem;
  */
 @OnlyIn(Dist.CLIENT)
 public class PlayerBonesVisibilityEvent extends Event {
+    private final Player player;
     private final ResourceLocation riderId;
     private boolean headVisible = true;
     private boolean hatVisible = true;
@@ -33,6 +34,7 @@ public class PlayerBonesVisibilityEvent extends Event {
     private boolean jacketVisible = true;
 
     public PlayerBonesVisibilityEvent(Player player, ResourceLocation riderId) {
+        this.player = player;
         this.riderId = riderId;
     }
 
@@ -157,6 +159,10 @@ public class PlayerBonesVisibilityEvent extends Event {
 
     public void setJacketVisible(boolean jacketVisible) {
         this.jacketVisible = jacketVisible;
+    }
+
+    public Player getPlayer() {
+        return player;
     }
 
     public ResourceLocation getRiderId() {

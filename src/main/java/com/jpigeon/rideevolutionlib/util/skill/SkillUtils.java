@@ -1,4 +1,4 @@
-package com.jpigeon.rideevolutionlib.util;
+package com.jpigeon.rideevolutionlib.util.skill;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
